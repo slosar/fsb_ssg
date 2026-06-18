@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: tests (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    defaults:
+      run:
+        shell: bash -el {0}      # login shell so `conda activate` works
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # NaMaster (pymaster) is most reliably installed from conda-forge, which
+      # ships prebuilt binaries together with healpy.
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge
+          channel-priority: strict
+          activate-environment: fsb
+
+      - name: Install dependencies
+        run: |
+          conda install -y numpy scipy healpy namaster pytest pip
+          python -m pip install -e . --no-deps
+
+      - name: Show versions
+        run: |
+          python -c "import numpy, healpy, pymaster; print('numpy', numpy.__version__); print('healpy', healpy.__version__); print('pymaster', pymaster.__version__)"
+
+      - name: Run tests
+        run: pytest -v

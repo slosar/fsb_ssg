@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fsb_ssg"
+version = "0.1.0"
+description = "Filtered-Square Bispectrum estimator for the shear-shear-galaxy field (NaMaster)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Anze Slosar", email = "slosar@gmail.com" }]
+keywords = ["cosmology", "weak-lensing", "bispectrum", "namaster", "healpix"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "numpy",
+    "healpy",
+    "pymaster>=2.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+science = ["matplotlib", "scipy"]
+
+[project.urls]
+Homepage = "https://github.com/slosar/fsb_ssg"
+Repository = "https://github.com/slosar/fsb_ssg"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
