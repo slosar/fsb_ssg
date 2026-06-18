@@ -21,7 +21,11 @@ NS=${FSB_NSIDE:-512}
 export FSB_NSIDE=$NS
 log(){ echo "=== [$(date +%H:%M:%S)] $* ==="; }
 
-log "cache (NSIDE=$NS)";        OMP_NUM_THREADS=${OMP_NUM_THREADS:-24} $PY build_cache.py
+if [ "$NS" -lt 1024 ]; then
+  log "cache (NSIDE=$NS)";      OMP_NUM_THREADS=${OMP_NUM_THREADS:-24} $PY build_cache.py
+else
+  log "cache: skipped (NSIDE>=1024 maps are native; load_cached reads FSB_SIM_DIR directly)"
+fi
 log "ground truth";            OMP_NUM_THREADS=${OMP_NUM_THREADS:-24} $PY ground_truth.py
 
 if [ "$NS" -ge 1024 ]; then
