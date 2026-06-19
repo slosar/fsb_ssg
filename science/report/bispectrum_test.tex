@@ -164,8 +164,9 @@ The transfer function quantifies why the masked, weighted
 \emph{filter-then-square} ground truth for the same sky. For a Gaussian shear
 field it is calculable from the mask, the weights $\Wone,\Wtwo$, the filter,
 and the shear power spectrum $C^{\gamma\gamma}_\ell$ alone. We first derive the
-underlying linear-response model (\cref{sec:response}), which is common to every
-method, and then give four evaluations of $T_\ell$, each with its own
+underlying linear-response model (\cref{sec:response}), which underlies the three
+\emph{analytic} methods (B)--(D) but \emph{not} the measured (A), and then give
+four evaluations of $T_\ell$, each with its own
 assumptions: the measured $T^{\rm (A)}$ (\cref{sec:TA}), the Gaussian
 Monte-Carlo $T^{\rm (B)}$ (\cref{sec:TB}), the closed form $T^{\rm (C)}$
 (\cref{sec:TC}), and the mode-coupling-matrix calibration $T^{\rm (D)}$
@@ -225,8 +226,8 @@ $|K|^2$ of the optimal-weights note (its noise template, with $n^2\!\to\!P_0$).
 The shear power enters only through the \emph{shape} of $\kappa$ (its width
 within the band); the response amplitude $b_\phi$ cancels in every transfer
 below. The co-location step that produced $\Wone^2$ in \cref{eq:kappa} from the
-genuinely bilinear $\Wone(a)\Wone(b)$ of \cref{eq:dM0bilinear} is common to all
-four methods, but it returns to bite method (D) (\cref{sec:TD}).
+genuinely bilinear $\Wone(a)\Wone(b)$ of \cref{eq:dM0bilinear} is common to the
+analytic methods (B)--(D), but it returns to bite method (D) (\cref{sec:TD}).
 
 \paragraph{Linearity, and why a Gaussian probe suffices.}
 The decisive feature of \cref{eq:kappa} is that $\delta M_0$ is \emph{linear in
@@ -567,25 +568,38 @@ per-realization excess $\ll1$ --- equivalently $\lesssim0.15\sigma$ per bandpowe
 
 \begin{table}[h]
 \centering
-\begin{tabular}{lccc}
+\begin{tabular}{llccc}
 \toprule
-method & $[50,500]$ & $[500,1000]$ & $[1000,1500]$\\
+method & field & $[50,500]$ & $[500,1000]$ & $[1000,1500]$\\
 \midrule
-(A) measured$^{\dagger}$        & $4.0\ (-0.03)$  & $6.1\ (-0.02)$  & $12.2\ (-0.01)$\\
-(B) Gaussian MC \emph{(fiducial)} & $57\ (0.10)$    & $34\ (0.05)$    & $14\ (-0.01)$\\
-(C) closed form                 & $46\ (0.08)$    & $42\ (0.07)$    & $18\ (0.01)$\\
-(D) matrix (smoothed window)    & $96\ (0.20)$    & $49\ (0.08)$    & $17.5\ (0.00)$\\
+(A) measured$^{\dagger}$       & $M_0$    & $4.0\ (-0.03)$  & $6.1\ (-0.02)$  & $12.2\ (-0.01)$\\
+                               & $M_{4E}$ & $9.1\ (-0.02)$  & $9.1\ (-0.02)$  & $21.0\ (0.01)$\\
+\addlinespace
+(B) Gaussian MC \emph{(fid.)}  & $M_0$    & $57\ (0.10)$    & $34\ (0.05)$    & $14\ (-0.01)$\\
+                               & $M_{4E}$ & $77\ (0.15)$    & $20\ (0.01)$    & $40\ (0.06)$\\
+\addlinespace
+(C) closed form                & $M_0$    & $46\ (0.08)$    & $42\ (0.07)$    & $18\ (0.01)$\\
+                               & $M_{4E}$ & $50\ (0.09)$    & $14\ (-0.01)$   & $34\ (0.05)$\\
+\addlinespace
+(D) matrix (smoothed)          & $M_0$    & $96\ (0.20)$    & $49\ (0.08)$    & $17.5\ (0.00)$\\
+                               & $M_{4E}$ & $320\ (0.76)$   & $29\ (0.03)$    & $41\ (0.06)$\\
 \bottomrule
 \end{tabular}
 \caption{Truth-residual $\chi^2$ ($\nu=16$, diagonal, $400$-realization error on
-the mean) of the \textbf{W1W2} $M_0$ cross-spectrum after each transfer
-calibration, per filter band. In parentheses: the $\chi^2$ excess per single
-realization, $(\chi^2-\nu)/400$. $^{\dagger}$(A) is circular --- calibrated on the
-same signal sims, so its mean is unbiased by construction (excess $\le0$); it is
-the reference, not a first-principles calibration. (B) and (C) are comparable and
-first-principles; (D) is comparable in the narrow bands and worse in the wide
-band $[50,500]$, where its single-window approximation (\cref{sec:TD}) is poorest.
-Every per-realization excess is $\ll1$.}
+the mean) of the \textbf{W1W2} $M_0$ and spin-4 $M_{4E}$ cross-spectra after each
+transfer calibration, per filter band. In parentheses: the $\chi^2$ excess per
+single realization, $(\chi^2-\nu)/400$. $^{\dagger}$(A) is circular --- calibrated
+\emph{per channel} on the same signal sims, so its mean is unbiased by
+construction (excess $\le0$); it is the reference, not a first-principles
+calibration. For $M_0$, (B)/(C) are comparable and first-principles and (D)
+matches them except in the wide band $[50,500]$, where its single-window
+approximation (\cref{sec:TD}) is poorest. The analytic transfers (B)--(D) are the
+\emph{$M_0$ (geometric) prediction applied to $M_{4E}$ as well}: they hold
+comparably in the narrow bands but leave a larger residual in the
+signal-dominated wide band (most starkly (D), $\chi^2=320$), where the spin-4
+channel's genuinely different transfer (\cref{sec:response}) matters most and the
+small $M_{4E}$ error bars resolve the mismatch. Every per-realization excess is
+$<1$ ($\lesssim0.2\sigma$ per bandpower).}
 \label{tab:transfer}
 \end{table}
 
@@ -600,6 +614,17 @@ smooth footprint (D) is thus \emph{not} more accurate than (B); its distinct
 value is being simultaneously Monte-Carlo--free, free of any explicit transfer
 function, and matrix-level (it corrects bandpower-to-bandpower couplings of the
 weight, which the scalar (C) cannot). The fiducial analysis adopts (B).
+
+The $M_{4E}$ rows test the spin-independence assumption of \cref{sec:response}:
+all three analytic methods reuse the $M_0$ geometric transfer for the spin-4
+channel. They calibrate it comparably in the narrow bands, but visibly
+under-perform in the signal-dominated wide band $[50,500]$ --- where (D) reaches
+$\chi^2=320$ --- because the spin-4 transfer genuinely differs there (the tidal
+response has its own kernel) and the small $M_{4E}$ error bars resolve the
+mismatch that the field-specific measured (A) absorbs by construction. The
+per-realization excess nonetheless stays $<1$ throughout, so the residual is
+sub-$\sigma$ at the single-realization level even for $M_{4E}$; a dedicated
+spin-4 response kernel would be needed to calibrate that band analytically.
 
 \section{Results}
 
@@ -672,7 +697,7 @@ transfer function is applied to the weighted scheme at all: the matrix-decoupled
 $T^{\rm (C)}=g_{\rm edge}$ as before) track the truth to $2\%$ in $[1000,1500]$
 and $5\%$ in $[500,1000]$ in the mean over the $400$ realizations, degrading in
 the wide band $[50,500]$ as discussed in \cref{sec:TD}. The per-realization
-significance of every residual is $\lesssim0.15\sigma$ (\cref{tab:transfer}).
+significance of every residual is $\lesssim0.2\sigma$ (\cref{tab:transfer}).
 
 \begin{figure}[p]
 \centering
