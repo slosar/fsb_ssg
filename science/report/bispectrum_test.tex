@@ -39,15 +39,19 @@ the mode decoupling and supplies a Gaussian covariance. The post-square weight
 $\Wtwo$ enters as the NaMaster field weight, so mode-decoupling makes the mean
 unbiased irrespective of $\Wtwo$ while $\Wtwo$ controls the variance. The
 additive $M_0$ noise bias is removed with an exact squared-kernel ($|K|^2$)
-template. Using $100$ full-sky, noise-free realizations as ground truth and
-$100\times4$ disjoint DES~Y6 footprints as $400$ masked, noisy realizations, we
-show that (i) the estimator is unbiased given the realization scatter, (ii) the
-NaMaster Gaussian covariance reproduces the sample scatter, and (iii) optimal
-weighting improves the signal-to-noise in the noise-dominated bands. The
-fiducial analysis is inverse-variance weighting ($\Wone=1/n^2$, $\Wtwo$ optimal)
-with the cross-spectra calibrated by an \emph{analytic} transfer function derived
-from the survey window and the power spectra; it remains unbiased without any
-calibration on the signal simulations.
+template. Because $\Wone$ is applied before the square (and the mask leaks power
+across the filter edge), the masked, weighted estimator differs from the
+full-sky truth by a deterministic transfer function, which we derive from first
+principles and evaluate four independent ways
+(\cref{sec:transfer}). Using $100$ full-sky, noise-free realizations as ground
+truth and $100\times4$ disjoint DES~Y6 footprints as $400$ masked, noisy
+realizations, we show that (i) the estimator is unbiased given the realization
+scatter, (ii) the NaMaster Gaussian covariance reproduces the sample scatter,
+and (iii) optimal weighting improves the signal-to-noise in the noise-dominated
+bands. The fiducial analysis is inverse-variance weighting ($\Wone=1/n^2$,
+$\Wtwo$ optimal) with the cross-spectra calibrated by an \emph{analytic}
+transfer function derived from the survey window and the power spectra; it
+remains unbiased without any calibration on the signal simulations.
 \end{abstract}
 
 \section{Estimator and pipeline}
@@ -85,7 +89,7 @@ We test three schemes:
 \item \textbf{W1W2} (\emph{fiducial}): $\Wone=1/n^2$, $\Wtwo$ optimal.
 \end{itemize}
 The fiducial analysis is \textbf{W1W2} with the cross-spectra calibrated by the
-analytic transfer of \cref{app:transfer}; the other schemes and the
+analytic transfer of \cref{sec:transfer}; the other schemes and the
 sim-calibrated transfer are kept for comparison.
 The optimal post-square weight is the deterministic inverse-variance map of the
 note,
@@ -117,20 +121,17 @@ with $\dt$ and \emph{must} be subtracted; $M_4$ has zero noise mean (Wick) and
 needs no debiasing. We verified the template reproduces the Monte-Carlo noise
 mean of $M_0$ to $\lesssim0.5\%$.
 
-\paragraph{$\Wone$ transfer function.}
+\paragraph{The transfer function.}
 $\Wone\neq1$ is applied \emph{before} the square, so the measured field is
 $|F[\Wone\bm\gamma]|^2$, which differs from the unweighted ground-truth field
 $|F[\bm\gamma]|^2$ by a deterministic, spatially varying modulation; the
 pre-filter masking likewise leaks power across the footprint edge. We correct
 both with a transfer function $T_b$, reporting results in truth units as $\hat
-C_b^{\rm corr}=\hat C_b/T_b$. Two transfers are used: the \emph{measured}
-$T^{\rm (A)}_b=\langle\hat C^{\rm sig}_b\rangle/C^{\rm truth}_b$ calibrated on the
-noise-free masked sims, and the \emph{analytic} $T^{\rm (B)}_b$ derived in
-\cref{app:transfer} from the survey window and the power spectra alone; the
-latter is the fiducial calibration, removing any dependence on the signal sims.
-$T_b\simeq0.94$ for the unweighted schemes (the mask--filter edge loss); the
-small lift for W1W2 is the $\Wone$ inverse-variance modulation, and both are
-reproduced analytically.
+C_b^{\rm corr}=\hat C_b/T_b$. The derivation of $T_b$ and its four independent
+evaluations (the measured $T^{\rm (A)}$, the Gaussian Monte-Carlo $T^{\rm (B)}$,
+the closed form $T^{\rm (C)}$, and the mode-coupling-matrix calibration $T^{\rm
+(D)}$) are the subject of \cref{sec:transfer}; the fiducial result uses the
+analytic $T^{\rm (B)}$, which removes any dependence on the signal sims.
 
 \section{Simulations and configuration}
 
@@ -156,48 +157,453 @@ Ground truth & $100$ full-sky, noise-free, unit-weight\\
 \caption{Run configuration.}
 \end{table}
 
-\section{Results}
+\section{Transfer functions}\label{sec:transfer}
 
-\subsection{Unbiasedness}
+The transfer function quantifies why the masked, weighted
+\emph{filter-then-square} estimator differs from the full-sky
+\emph{filter-then-square} ground truth for the same sky. For a Gaussian shear
+field it is calculable from the mask, the weights $\Wone,\Wtwo$, the filter,
+and the shear power spectrum $C^{\gamma\gamma}_\ell$ alone. We first derive the
+underlying linear-response model (\cref{sec:response}), which is common to every
+method, and then give four evaluations of $T_\ell$, each with its own
+assumptions: the measured $T^{\rm (A)}$ (\cref{sec:TA}), the Gaussian
+Monte-Carlo $T^{\rm (B)}$ (\cref{sec:TB}), the closed form $T^{\rm (C)}$
+(\cref{sec:TC}), and the mode-coupling-matrix calibration $T^{\rm (D)}$
+(\cref{sec:TD}). \Cref{sec:Tcompare} compares them quantitatively.
 
-To compare the masked, weighted estimator with the full-sky truth we divide each
-bandpower by a transfer function $T_\ell$ (\cref{app:transfer}). We use two
-versions: the \emph{measured} $T^{\rm (A)}_\ell=\langle\hat
-C^{\rm sig}_\ell\rangle/C^{\rm truth}_\ell$ calibrated from the noise-free signal
-sims, and the \emph{analytic} $T^{\rm (B)}_\ell$ predicted from the survey window
-and the power spectra alone. The fiducial measurement is the \textbf{W1W2}
-scheme corrected by the analytic $T^{\rm (B)}$ --- a fully first-principles
-calibration --- but we report all three schemes and both transfers throughout.
+\subsection{The squeezed-limit response}\label{sec:response}
 
-\Cref{fig:transfer} shows the measured transfer function $T_\ell$ for the three
-schemes ($M_0$). The \textbf{none} and \textbf{W2} curves are essentially
-identical (plateau at $T\simeq0.93$), confirming that $\Wtwo$ --- supplied as the
-NaMaster weight --- does \emph{not} bias the mean: NaMaster's mode-decoupling
-removes it. The \textbf{W1W2} curve sits higher ($T\simeq1.0$--$1.08$ in the
-noise-dominated bands), the signature of the $\Wone=1/n^2$ pre-filter modulation
-of the squared field. All curves drop in the lowest-$\ell$ bandpower, where the
-$\sim11\%$ footprint poorly recovers the largest scales. $T_\ell$ is the
-deterministic, per-bandpower calibration divided out to report results in truth
-units. It is not merely empirical: \cref{app:transfer} derives $T_\ell$
-analytically from the mask, weights, filter and shear power spectrum, and
-\cref{fig:transfer_pred} shows the prediction reproduces the measured $T_\ell$
-for both $M_0$ and $M_{4E}$.
+\paragraph{Filtered-shear kernel.}
+Let $\xi=F[\Wone\bm\gamma]$ be the bandpass-filtered (weighted) shear, with
+real-space bandpass kernel $K(\theta)=\mathrm{bl2beam}(f_\ell)$ (the Legendre
+transform of the top-hat). Its full-sky, homogeneous two-point function is
+\begin{equation}
+\rho(\theta)=\E[\xi(\nv)\xi^*(\nv')]
+=\sum_\ell\frac{2\ell+1}{4\pi}f_\ell^2\,C^{\gamma\gamma}_\ell\,P_\ell(\cos\theta),
+\qquad \E[M_0]=\rho(0),
+\label{eq:rho}
+\end{equation}
+with $\theta$ the separation of $\nv,\nv'$ and $C^{\gamma\gamma}_\ell=
+(C^{EE}_\ell+C^{BB}_\ell)/2$ the per-component shear power.
+
+\paragraph{Spin reduction (assumption).}
+$\xi$ is a spin-2 field, so its exact two-point function involves the
+spin-weighted functions $d^\ell_{2,\pm2}$ (the $\xi_\pm$ correlation functions),
+not the scalar $P_\ell$ used in \cref{eq:rho}. The scalar series is
+\emph{exact} at $\theta=0$, where $d^\ell_{2,2}(0)=P_\ell(1)=1$ --- so the local
+mean $\E[M_0]=\rho(0)$, and hence the $|K|^2$ noise-bias template, are exact ---
+and is the leading approximation for $\theta>0$, accurate in the
+small-separation regime that dominates the narrow-band response. The squared
+field itself, $M_0=\xi_1^2+\xi_2^2=|\xi|^2$, is a genuine \emph{scalar} (spin-0):
+the spin-2 structure is integrated out of the modulus, which is why $M_0$ is
+crossed with $\dt$ as spin-0$\times$spin-0.
+
+\paragraph{Squeezed response.}
+The shear--shear--density signal is the response of the small-scale shear power
+to the large-scale lens density: across the band $C^{\gamma\gamma}_\ell\to
+C^{\gamma\gamma}_\ell[1+b_\phi\,\dt(\nv)]$ (a separate-universe / squeezed
+modulation). To linear order the $\dt$-correlated part of $M_0$ is the bilinear
+\begin{equation}
+\delta M_0(\nv)=b_\phi\!\int\!\!\int K(\nv,a)K^*(\nv,b)\,\Wone(a)\Wone(b)\,
+C^{\gamma\gamma}(a\!\cdot\!b)\,\dt(a)\,\diff a\,\diff b\;+\;(a\!\leftrightarrow\!b),
+\label{eq:dM0bilinear}
+\end{equation}
+where $\Wone$ carries the binary mask. Doing the inner integral,
+$\int K^*(\nv,b)C^{\gamma\gamma}(a\!\cdot\!b)\diff b$ has harmonic coefficients
+$f_\ell C^{\gamma\gamma}_\ell$; treating the two filtered legs as co-located on
+the kernel scale ($\Wone(b)\!\simeq\!\Wone(a)$, so
+$\Wone(a)\Wone(b)\!\to\!\Wone^2$) gives the compact form
+\begin{equation}
+\boxed{\;\delta M_0(\nv)=2b_\phi\,[\kappa\star(\Wone^2\dt)](\nv),\qquad
+b^\kappa_\ell=\mathrm{beam2bl}\!\big[\mathrm{bl2beam}(f_\ell)\cdot
+\mathrm{bl2beam}(f_\ell C^{\gamma\gamma}_\ell)\big].\;}
+\label{eq:kappa}
+\end{equation}
+For a white band $C^{\gamma\gamma}_\ell=P_0$ this reduces to
+$b^\kappa_\ell=P_0\,\mathrm{beam2bl}[\,|K(\theta)|^2]$, i.e.\ the squared-kernel
+$|K|^2$ of the optimal-weights note (its noise template, with $n^2\!\to\!P_0$).
+The shear power enters only through the \emph{shape} of $\kappa$ (its width
+within the band); the response amplitude $b_\phi$ cancels in every transfer
+below. The co-location step that produced $\Wone^2$ in \cref{eq:kappa} from the
+genuinely bilinear $\Wone(a)\Wone(b)$ of \cref{eq:dM0bilinear} is common to all
+four methods, but it returns to bite method (D) (\cref{sec:TD}).
+
+\paragraph{Linearity, and why a Gaussian probe suffices.}
+The decisive feature of \cref{eq:kappa} is that $\delta M_0$ is \emph{linear in
+$\dt$}. The estimator's signal is the cross of the weighted, masked, decoupled
+$\delta M_0$ with $\dt$; because $\delta M_0$ is linear in $\dt$, this cross is a
+\emph{second moment} (power-spectrum-like) functional of $\dt$, not a
+three-point function. On the real (mildly non-Gaussian) sky the physical signal
+$\langle M_0\dt\rangle$ is a genuine bispectrum --- it vanishes identically for a
+jointly Gaussian shear+density field by Wick's theorem, and is non-zero only
+because nonlinear growth makes the small-scale shear power track the large-scale
+density (the amplitude $b_\phi$). The transfer, however, asks only how the survey
+window reshapes the \emph{linear} response \cref{eq:kappa}; the non-Gaussianity
+has been folded analytically into the response operator $\kappa$ and its
+amplitude $b_\phi$, which cancels in the transfer ratio. A probe $\dt$ with the
+correct two-point statistics --- in particular a Gaussian draw --- is therefore
+sufficient (and correct) to evaluate the transfer; this is what method (B)
+exploits.
+
+\paragraph{Transfer.}
+Full sky with $\Wone=1$ gives the truth response $\delta M_0^{\rm t}=2b_\phi
+\,\kappa\star\dt$, so $\langle\delta M_0^{\rm t}\dt\rangle_\ell=2b_\phi
+b^\kappa_\ell C^{\dt\dt}_\ell$. NaMaster already removes the cross mode-coupling
+of the $(\Wtwo\,\text{mask},\,\text{mask})$ weights, so the residual transfer is
+the field-level window relating the constructed response $\kappa\star(\Wone^2\dt)$
+to the truth $\kappa\star\dt$:
+\begin{equation}
+T_\ell=\frac{\big\langle\,\mathrm{decouple}_{\Wtwo{\rm m}}\,
+\mathrm{pseudo}C_\ell[(\Wtwo\,{\rm m})\,\kappa\star(\Wone^2\dt),\ {\rm m}\,\dt]\big\rangle}
+{\big\langle\,\mathrm{decouple}_{1}\,
+\mathrm{pseudo}C_\ell[\kappa\star\dt,\ \dt]\big\rangle},
+\label{eq:Tdef}
+\end{equation}
+independent of $b_\phi$ and of the normalization of $\kappa$.
+
+\paragraph{Density assumption.}
+We treat $\delta_{\rm src}$ as an externally \emph{fixed survey window}: it sets
+the depth and hence the noise and the weights $\Wone,\Wtwo$, which are therefore
+deterministic maps (like the mask). The lens density $\dt$ --- at a different
+redshift --- is the random probe, taken uncorrelated with the window,
+$\delta_{\rm src}\perp\dt$. The prediction thus uses only the spectra
+$C^{\gamma\gamma}$ (via $\kappa$) and $C^{\dt\dt}$ (the probe), the mask, the
+filter and the weights; it never uses the lens map.
+
+\paragraph{Spin-4 (assumption).}
+A scalar power modulation does not source $M_{4E}=\mathrm{Re}\,\xi^2$ at linear
+order ($\E[\xi^2]=0$); its signal is the anisotropic (tidal) response, with a
+different kernel and amplitude. The \emph{geometric} transfer --- the
+mask$\,\otimes\,$filter non-commutation and the weight normalization --- is,
+however, common to both spin channels, so we apply the scalar $M_0$ prediction
+to $M_{4E}$ as well. This is confirmed empirically by the near-equal measured
+$M_0$ and $M_{4E}$ transfers (\cref{sec:TA}, \cref{fig:transfer_pred}).
+
+\subsection{(A) Measured transfer}\label{sec:TA}
+
+The measured transfer is the ratio of the (mean) masked, weighted signal
+bandpower to the full-sky truth,
+\begin{equation}
+T^{\rm (A)}_\ell=\frac{\langle\hat C^{\rm sig}_\ell\rangle}{C^{\rm truth}_\ell},
+\label{eq:TA}
+\end{equation}
+calibrated on the $400$ noise-free signal realizations of the main run --- which
+use the \emph{real}, weakly correlated $\delta_{\rm src}$ and $\dt$, so it makes
+none of the modelling assumptions of \cref{sec:response} (no squeezed limit, no
+white-band $\kappa$, no fixed-window). It is, however, \emph{circular}:
+\cref{eq:TA} is constructed so that the corrected signal mean equals the truth by
+definition, so it cannot test the bias of the signal mean, only the
+noise-debiasing (\cref{sec:unbias}). It also requires signal simulations and so
+is not a first-principles calibration; we use it as the reference against which
+(B)--(D) are judged.
+
+\Cref{fig:transfer} shows $T^{\rm (A)}_\ell$ for the three schemes ($M_0$). The
+\textbf{none} and \textbf{W2} curves are essentially identical (plateau at
+$T\simeq0.93$), confirming that $\Wtwo$ --- supplied as the NaMaster weight ---
+does \emph{not} bias the mean: NaMaster's mode-decoupling removes it. The
+\textbf{W1W2} curve sits higher ($T\simeq1.0$--$1.08$ in the noise-dominated
+bands), the signature of the $\Wone=1/n^2$ pre-filter modulation. All curves
+drop in the lowest-$\ell$ bandpower, where the $\sim11\%$ footprint poorly
+recovers the largest scales and the mode-coupling matrix is ill-conditioned.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/transfer_ns1024.pdf}
 \caption{Measured transfer function
-$T_\ell=\langle\hat C^{\rm sig}_\ell\rangle/C^{\rm truth}_\ell$ for the $M_0$
-cross, from the noise-free masked realizations, for the three weighting schemes
-and three filter bands, over the full analysed range $\ell\le768$ (faint lines;
-solid markers flag the signal-bearing bandpowers). \textbf{none} and \textbf{W2}
-overlap (NaMaster removes the $\Wtwo$ weighting from the mean); \textbf{W1W2} is
-shifted upward by the $\Wone=1/n^2$ modulation, most cleanly in the
-$[1000,1500]$ band where $T_\ell$ is flat across all $\ell$. The transient
-excursion near $\ell\simeq600$ in $[500,1000]$ is a zero-crossing of the
-truth cross-spectrum, where the ratio is ill-defined. The dashed line is unity.}
+$T^{\rm (A)}_\ell=\langle\hat C^{\rm sig}_\ell\rangle/C^{\rm truth}_\ell$ for the
+$M_0$ cross, from the noise-free masked realizations, for the three weighting
+schemes and three filter bands, over the full analysed range $\ell\le768$ (faint
+lines; solid markers flag the signal-bearing bandpowers). \textbf{none} and
+\textbf{W2} overlap (NaMaster removes the $\Wtwo$ weighting from the mean);
+\textbf{W1W2} is shifted upward by the $\Wone=1/n^2$ modulation, most cleanly in
+the $[1000,1500]$ band where $T_\ell$ is flat across all $\ell$. The transient
+excursion near $\ell\simeq600$ in $[500,1000]$ is a zero-crossing of the truth
+cross-spectrum, where the ratio is ill-defined. The dashed line is unity.}
 \label{fig:transfer}
 \end{figure}
+
+\subsection{(B) Gaussian Monte-Carlo}\label{sec:TB}
+
+Method (B) evaluates \cref{eq:Tdef} by Monte-Carlo, and is the fiducial
+calibration. The essential point --- and the resolution of the apparent paradox
+that a cubic statistic of a Gaussian field averages to zero --- is that (B) does
+\emph{not} cross a random $\dt$ against the data's $M_0$, nor does it take any
+three-point average. It replaces $M_0$ by its \emph{linear response}
+\cref{eq:kappa} and crosses that with the \emph{same} $\dt$, so the quantity
+averaged is the two-point functional $\langle\dt\cdot\kappa\star(\Wone^2\dt)
+\rangle$, which is robustly non-zero. Concretely, for each of $N_{\rm MC}$ draws:
+\begin{enumerate}
+\item draw a Gaussian $\dt$ from $C^{\dt\dt}_\ell$ (measured from the lens maps);
+\item build the model response map $\kappa\star(\Wone^2\dt)$ (a deterministic,
+\emph{linear} function of the drawn $\dt$);
+\item push it through the \emph{identical} NaMaster pipeline used on the data ---
+weighted by $\Wtwo$ on the masked sky, crossed with ${\rm m}\,\dt$, and decoupled
+with the workspace built from $(\text{mask},\Wtwo)$ --- to form the numerator of
+\cref{eq:Tdef};
+\item form the denominator from the same $\dt$ full-sky, unit-weight,
+$\kappa\star\dt$;
+\item accumulate; the ratio of the two ensemble averages is $T^{\rm (B)}_\ell$.
+\end{enumerate}
+
+\paragraph{Assumptions.}
+The squeezed-limit linear response and the white-band/scalar-kernel shape of
+$\kappa$ (\cref{sec:response}), the fixed-window treatment, and finite-$N_{\rm
+MC}$ noise. Crucially, the NaMaster decoupling itself is performed \emph{exactly}
+on the model maps, so (B) captures the full, $\ell$-by-$\ell$ joint mode-coupling
+of the mask and the weights; it makes no approximation beyond those in the
+response. The amplitude $b_\phi$ appears identically in numerator and denominator
+and cancels; $C^{\dt\dt}_\ell$ appears in both and largely cancels, so $T^{\rm
+(B)}$ is essentially a geometric window factor and Gaussian $\dt$ --- having the
+correct second moment by construction --- is the natural, sufficient probe.
+
+\subsection{(C) Closed form}\label{sec:TC}
+
+Method (C) evaluates the same transfer with no Monte-Carlo, by factorizing it
+into a mask-edge loss and an inverse-variance Jensen factor,
+\begin{equation}
+\boxed{\;T_\ell^{\rm (C)}=g_{\rm edge}\times N_{\rm weight},\quad
+g_{\rm edge}=\frac{\langle\kappa\star{\rm m}\rangle_{\rm m}}{\langle{\rm m}\rangle_{\rm m}},\quad
+N_{\rm weight}=\frac{\langle\Wtwo\,{\rm m}\,\Wone^2\rangle}{\langle\Wtwo\,{\rm m}\rangle}\;}
+\label{eq:TC}
+\end{equation}
+where $\langle\cdot\rangle_{\rm m}$ is the in-mask average.
+$g_{\rm edge}\simeq0.93$--$0.94$ is the finite-kernel mask-edge loss --- the
+mean fraction of the filter footprint lying inside the mask, set by the filter
+and $C^{\gamma\gamma}$ --- and sets the $\simeq0.94$ level for the unweighted
+schemes. $N_{\rm weight}$ is the net inverse-variance Jensen factor:
+$\Wone^2\propto(1{+}\delta_{\rm src})^2$ upweights low-noise regions, and
+although the optimal $\Wtwo$ partly compensates, a residual enhancement survives,
+$N_{\rm weight}\approx1.04$--$1.10$ for W1W2 (rising with band) and $=1$ for
+\textbf{none}/\textbf{W2}.
+
+\paragraph{Additional assumptions (beyond (B)).}
+Relative to (B), the closed form makes three further approximations:
+\begin{enumerate}
+\item \emph{Factorization}: $T_\ell=g_{\rm edge}\times N_{\rm weight}$ treats the
+edge loss and the weight modulation as independent multiplicative effects, with
+no cross-talk;
+\item \emph{$\ell$-independence within a band}: both factors are single numbers
+per (band, scheme), so $T^{\rm (C)}$ is constant across the cross-multipole
+bandpowers --- it cannot represent the low-$\ell$ degradation where the coupling
+matrix is ill-conditioned, which (B) retains;
+\item \emph{Mean-field reduction}: both $g_{\rm edge}$ and $N_{\rm weight}$
+replace the full NaMaster coupling matrices by scalar position-space averages.
+\end{enumerate}
+
+\paragraph{Why (C) is nonetheless robust.}
+$N_{\rm weight}$ is a pure \emph{normalization} (a ratio of means), and is the
+part of the calibration that is exact: because $\kappa$ has unit integral,
+$\langle\kappa\star\Wone^2\rangle=\langle\Wone^2\rangle$, so the
+small-scale-weight ambiguity that afflicts the matrix version (\cref{sec:TD}) does
+\emph{not} enter the mean. The $\ell$-coupling that (C) discards is exactly where
+the smooth-weight error would live, and since the cross lives at low $\ell$
+($\dt$ long-ranged) while $\Wone^2$ varies at high $\ell$, only the mean
+amplitude matters. (C) then \emph{divides this scalar out by fiat}, calibrating
+the mean to the model. The result is cruder than (B) but commits only to the
+robust quantity, and the two agree (\cref{fig:transfer_pred}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/transfer_pred_ns1024.pdf}
+\caption{Transfer function by methods (A)/(B)/(C) over the full analysed range
+$\ell\le768$, per scheme (colour) and band. Points: measured (A) for $M_0$
+(circles, signal-bearing bandpowers) and $M_{4E}$ (crosses). Solid lines:
+Gaussian Monte-Carlo (B); dashed: closed form (C), \cref{eq:TC}. The predictions
+use only the fixed $\delta_{\rm src}$ survey window (hence $\Wone,\Wtwo$), the
+spectra $C^{\gamma\gamma}$ (via $\kappa$) and $C^{\dt\dt}$, the mask and the
+filter --- and never the lens map. (B) and (C) agree, and both match the
+measured transfer to $\sim$1--3\% in the narrow bands $[500,1000]$ and
+$[1000,1500]$ --- including the \textbf{W1W2} lift to $\simeq1.0$--$1.05$ --- and
+to $\sim$8\% in the wide low band $[50,500]$, where the white-band approximation
+for $\kappa$ is least accurate (cf.\ the optimal-weights note). The lift is thus
+a deterministic inverse-variance effect, not a source--lens correlation; both
+spin channels follow the common scalar prediction. (The lowest bandpower of the
+measured $T$ is noisy: the mode-coupling matrix is ill-conditioned for the
+largest scales on an $\sim\!11\%$ footprint.)}
+\label{fig:transfer_pred}
+\end{figure}
+
+\subsection{(D) Mode-coupling-matrix calibration}\label{sec:TD}
+
+Rather than dividing out a transfer function, method (D) hands the $\Wone$
+modulation to NaMaster itself. If the weight were smooth on the kernel scale the
+response would commute, $\kappa\star(\Wone^2\dt)\simeq\Wone^2\,(\kappa\star\dt)$,
+and the weighted squared field entering the pseudo-spectrum would be
+\begin{equation}
+(\Wtwo{\rm m})\,\delta M_0\ \simeq\ (\Wtwo\,{\rm m}\,\Wone^2)\times
+2b_\phi\,(\kappa\star\dt)\,,
+\end{equation}
+i.e.\ the \emph{full-sky truth response} observed through the effective
+multiplicative window $\Wtwo{\rm m}\Wone^2$. Decoupling the measured
+pseudo-spectrum with the mode-coupling matrix computed for the window pair
+$({\rm m},w_{\rm D})$ --- in NaMaster, a map-less ``dummy'' field carrying
+$w_{\rm D}$ ---
+\begin{equation}
+\boxed{\;\hat C^{\rm (D)}_b=\sum_{b'}\bigl[M^{({\rm m},\,w_{\rm D})}\bigr]^{-1}_{bb'}
+\,\mathrm{pseudo}C_{b'}\bigl[({\rm m})\,\dt,\ (\Wtwo{\rm m})\,M_0\bigr]\;}
+\label{eq:TD}
+\end{equation}
+then estimates the truth response directly: the inverse-variance Jensen factor
+($N_{\rm weight}$ of method (C)) is absorbed into the coupling matrix, as a full
+$\ell$-dependent matrix rather than a scalar, and \emph{no transfer function is
+applied}. The arbitrary $\Wone$ normalization cancels ($M_0\propto\Wone^2$ and
+$w_{\rm D}\propto\Wone^2$), and for \textbf{none}/\textbf{W2} ($\Wone=1$) the
+construction reduces to the standard decoupling.
+
+\paragraph{Choice of window: raw vs kernel-smoothed.}
+The survey weight is \emph{not} smooth on the kernel scale ($\delta_{\rm src}$
+has structure at all $\ell$). Writing out the $\dt$-contraction of the
+pseudo-spectrum,
+\begin{equation}
+\big\langle({\rm m}\,\dt)(x)\ (\Wtwo{\rm m})(\nv)\,[\kappa\star(\Wone^2\dt)](\nv)\big\rangle
+=\int\!{\rm m}(x)\,(\Wtwo{\rm m})(\nv)\,\kappa(\nv-a)\,\Wone^2(a)\,
+\xi_{\dt}(x-a)\,\diff a ,
+\end{equation}
+the weight is probed at the \emph{inner} point $a$ of the kernel convolution:
+since the probe $\xi_\dt$ is long-ranged (the cross lives at low $\ell$) while
+$\kappa$ is narrow, the multiplicative-window model holds with the
+\emph{kernel-smoothed} weight,
+\begin{equation}
+w_{\rm D}^{\rm smooth}=\Wtwo\,{\rm m}\,(\kappa\star\Wone^2)\,,
+\label{eq:wDsmooth}
+\end{equation}
+($\kappa$ normalized to unit integral) rather than with the raw
+$w_{\rm D}^{\rm raw}=\Wtwo{\rm m}\Wone^2$ of the naive commutation: the raw
+window over-counts the small-scale weight structure that the kernel filters out
+of the band. With $w^{\rm raw}_{\rm D}$ the idealized residual is the kernel-edge
+factor $g_{\rm edge}$ of \cref{eq:TC} (the smoothing of $\Wone^2$, which carries
+the mask, is not represented); with $w^{\rm smooth}_{\rm D}$ the window itself
+contains the kernel's mask-edge dip --- $\kappa\star\Wone^2$ falls off where the
+kernel support leaves the footprint --- so the expected residual is \emph{unity}:
+no transfer function at all.
+
+\paragraph{Implementation.}
+(i) Both decouplings act linearly on the same measured pseudo-spectrum, so the
+(D) bandpowers follow from the stored standard-decoupled ones exactly,
+$\hat C^{\rm (D)}=M_{\rm D}^{-1}M_{\rm std}\,\hat C^{\rm std}\equiv A\,\hat
+C^{\rm std}$ (binned matrices), with no re-measurement; we verified this
+re-decoupling against a direct (D) decoupling of one realization to relative
+precision $\lesssim4\times10^{-15}$.
+(ii) The coupling matrices use the fixed survey window of realization~1 --- the
+same fixed-window treatment as (B)/(C) --- while the measured $M_0$ carries the
+per-realization $\Wone$. (The \emph{ensemble-mean} noise map must not be used
+here: averaging over source-density realizations washes out the modulation,
+leaving a nearly flat window and a no-op correction.)
+(iii) For the spin-4 channel the decoupling in principle mixes $(E,B)$; we apply
+the $E\!\to\!E$ block of the re-decoupling matrix to the stored $E$ bandpowers,
+having checked that the $E\!\leftarrow\!B$ leakage block vanishes identically for
+these windows.
+
+\paragraph{The extra approximation, and why (D) can do worse than (C).}
+Method (D) is often described as the matrix generalization of (C), but it is more
+precisely a matrix built from an \emph{approximate} effective-window model ---
+promoting (C) exactly to a matrix would merely reproduce (B). The response
+\cref{eq:kappa} is a \emph{convolution} of the weight with the field; to use it
+as a decoupling matrix, (D) must rewrite it as a \emph{single multiplicative
+window} $w_{\rm D}(\nv)$ times the truth response $\kappa\star\dt$. No
+single-point window can do this exactly, because the underlying response
+\cref{eq:dM0bilinear} is genuinely \emph{bilinear} in the weight, carrying
+$\Wone$ at \emph{two} filtered points $a,b$: weight fluctuations above the field
+bandpass cannot modulate the band at all (they are filtered out at both legs),
+whereas $\kappa\star\Wone^2$ still credits their positive contribution to the
+local mean square. The kernel-smoothed window \cref{eq:wDsmooth} fixes the
+leading term but leaves this residual, so the matrix \emph{over-corrects}
+slightly, leaving the recovered bandpower below truth.
+
+(C) is immune to this because it never represents the operator: it extracts only
+the global amplitude, a ratio of means that is exact (\cref{sec:TC}), and divides
+it out by fiat. (B) is immune because it never factorizes at all --- it decouples
+the actual response map through the exact matrix. (D), by contrast, commits to a
+full $\ell$-coupling derived from a structurally wrong window \emph{and} applies
+no compensating transfer, so the residual model error is left in. The error is
+worst where the kernel is broadest --- the wide band $[50,500]$ --- where the
+commutation is poorest and the white-band $\kappa$ approximation already degrades
+(B) and (C); in the narrow bands the kernel is tight and (D)$\,\approx\,$(B)$\,
+\approx\,$(C).
+
+\Cref{fig:transferD} tests both windows on the signal-only channel ($M_0$). The
+raw window \emph{over}-corrects: the residual transfer lands below $g_{\rm edge}$
+(medians $0.92$ in $[1000,1500]$ and $0.89$ in $[500,1000]$, against
+$g_{\rm edge}\simeq0.94$), because the coupling matrix charges the estimator for
+small-scale weight power the kernel has already filtered out. The kernel-smoothed
+window behaves as derived: its residual is consistent with \emph{unity} to $2\%$
+in $[1000,1500]$ ($\langle T\rangle=0.98$) and to $5\%$ in $[500,1000]$
+($\langle T\rangle=0.95$) --- the $\Wone$ lift \emph{and} the edge loss both
+absorbed by the matrix, no transfer applied. (The two variants differ by a nearly
+flat factor $\simeq1/g_{\rm edge}$.) In the wide band $[50,500]$ the deficit
+grows to $\sim15\%$. The spin-4 channel follows the same pattern within its much
+larger transfer uncertainty (median smoothed-window residuals $0.87$--$0.90$).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/transfer_D_ns1024.pdf}
+\caption{Residual transfer of the \textbf{W1W2} scheme under the standard
+decoupling (blue points: measured; blue dashed: the closed form
+$g_{\rm edge}N_{\rm weight}$ of \cref{eq:TC}) and under the method-(D) matrix
+decoupling, with the raw window $\Wtwo{\rm m}\Wone^2$ (green) and the
+kernel-smoothed window $\Wtwo{\rm m}(\kappa\star\Wone^2)$ of \cref{eq:wDsmooth}
+(purple), for the $M_0$ channel per filter band, on the signal-bearing
+bandpowers. The dotted line is $g_{\rm edge}$, the solid grey line unity. The raw
+window over-corrects (lands below $g_{\rm edge}$); the kernel-smoothed window
+absorbs both the $\Wone$ lift and the edge loss, leaving a residual close to
+unity in the narrow bands.}
+\label{fig:transferD}
+\end{figure}
+
+\subsection{Comparison}\label{sec:Tcompare}
+
+\Cref{tab:transfer} collects the truth-residual $\chi^2$ of the fiducial
+\textbf{W1W2} $M_0$ bandpowers under each calibration. The $\chi^2$ is diagonal,
+over the $\nu=16$ analysed bandpowers ($\ell\le768$), and uses the
+$400$-realization error \emph{on the mean}; its statistical expectation is
+$\nu=16$ with spread $\pm\sqrt{2\nu}\approx5.7$. Values well above $\nu$ therefore
+flag a residual \emph{model bias} (not scatter), amplified by the small error on
+the mean. To make that bias intuitive, the parenthetical gives the corresponding
+$\chi^2$ \emph{excess per single realization}, $(\chi^2-\nu)/N_{\rm real}$ with
+$N_{\rm real}=400$: it is the systematic contribution as a single realization
+would see it (negative values mean the residual is below the statistical
+expectation, i.e.\ no detectable bias). All four calibrations leave a
+per-realization excess $\ll1$ --- equivalently $\lesssim0.15\sigma$ per bandpower.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+method & $[50,500]$ & $[500,1000]$ & $[1000,1500]$\\
+\midrule
+(A) measured$^{\dagger}$        & $4.0\ (-0.03)$  & $6.1\ (-0.02)$  & $12.2\ (-0.01)$\\
+(B) Gaussian MC \emph{(fiducial)} & $57\ (0.10)$    & $34\ (0.05)$    & $14\ (-0.01)$\\
+(C) closed form                 & $46\ (0.08)$    & $42\ (0.07)$    & $18\ (0.01)$\\
+(D) matrix (smoothed window)    & $96\ (0.20)$    & $49\ (0.08)$    & $17.5\ (0.00)$\\
+\bottomrule
+\end{tabular}
+\caption{Truth-residual $\chi^2$ ($\nu=16$, diagonal, $400$-realization error on
+the mean) of the \textbf{W1W2} $M_0$ cross-spectrum after each transfer
+calibration, per filter band. In parentheses: the $\chi^2$ excess per single
+realization, $(\chi^2-\nu)/400$. $^{\dagger}$(A) is circular --- calibrated on the
+same signal sims, so its mean is unbiased by construction (excess $\le0$); it is
+the reference, not a first-principles calibration. (B) and (C) are comparable and
+first-principles; (D) is comparable in the narrow bands and worse in the wide
+band $[50,500]$, where its single-window approximation (\cref{sec:TD}) is poorest.
+Every per-realization excess is $\ll1$.}
+\label{tab:transfer}
+\end{table}
+
+The ordering is the one the derivations predict. (A) is unbiased by construction
+and sits at or below $\nu$. (B) and (C) --- the Monte-Carlo and closed-form
+evaluations of the \emph{same} scalar transfer --- are comparable, with the wide
+band $[50,500]$ the worst for both (the white-band $\kappa$ approximation). (D),
+which keeps the full $\ell$-coupling but pays for it with the single-window
+approximation and applies no compensating transfer, matches (B)/(C) in the narrow
+bands and is the worst of the four in the wide band ($\chi^2=96$). On this
+smooth footprint (D) is thus \emph{not} more accurate than (B); its distinct
+value is being simultaneously Monte-Carlo--free, free of any explicit transfer
+function, and matrix-level (it corrects bandpower-to-bandpower couplings of the
+weight, which the scalar (C) cannot). The fiducial analysis adopts (B).
+
+\section{Results}
+
+\subsection{Unbiasedness}\label{sec:unbias}
 
 We quantify unbiasedness two ways. First, a clean test of the noise debiasing:
 per realization, $d_b=\hat C^{\rm tot}_b-\hat C^{\rm sig}_b$ isolates the noise
@@ -205,7 +611,9 @@ contribution (the signal cancels sample by sample), and its mean must vanish.
 Second, the residual of the corrected mean against the truth,
 $\hat C^{\rm corr}_b-C^{\rm truth}_b$, compared with the error on the mean.
 Both give diagonal $\chi^2$ consistent with the number of bandpowers
-(\cref{tab:chi2}).
+(\cref{tab:chi2}). The transfer functions $T^{\rm (A)}$--$T^{\rm (D)}$ used to put
+the bandpowers in truth units are derived and compared in \cref{sec:transfer};
+the fiducial measurement is \textbf{W1W2} corrected by the analytic $T^{\rm (B)}$.
 
 \begin{table}[h]
 \centering
@@ -235,12 +643,12 @@ $M_{4E}$ & $[50,500]$\ \ none   & $0.90$ & $18.6$ & $12.1$ & $4.7$\\
        & \hphantom{$[1000,1500]$\ \ }W1W2   & $0.95$ & $22.5$ & $21.0$ & $1.2$\\
 \bottomrule
 \end{tabular}
-\caption{Transfer-function median $\langle T\rangle$, noise-debiasing $\chi^2$,
-truth-residual $\chi^2$ (both diagonal, $\nu=16$ bandpowers on $\ell\le768$), and
-detection SNR, per field / filter band / weighting scheme, from the
-$400$-realization NSIDE$=1024$ run. The $\chi^2$ values are all consistent with
-$\nu=16$ (expected spread $\pm\sqrt{2\nu}\approx5.7$). The SNR rises sharply with
-weighting in the noise-dominated bands (bold).}
+\caption{Transfer-function median $\langle T\rangle$ (method A), noise-debiasing
+$\chi^2$, truth-residual $\chi^2$ (both diagonal, $\nu=16$ bandpowers on
+$\ell\le768$), and detection SNR, per field / filter band / weighting scheme,
+from the $400$-realization NSIDE$=1024$ run. The $\chi^2$ values are all
+consistent with $\nu=16$ (expected spread $\pm\sqrt{2\nu}\approx5.7$). The SNR
+rises sharply with weighting in the noise-dominated bands (bold).}
 \label{tab:chi2}
 \end{table}
 
@@ -253,33 +661,18 @@ fiducial result, \cref{fig:crossM0predB,fig:crossM4predB}, instead divides by th
 both channels since the geometric transfer is spin-independent). The bandpowers
 remain consistent with truth --- residuals at the $\pm1$--$2$ level in the narrow
 bands $[500,1000]$ and $[1000,1500]$, with a mild trend in the wide band
-$[50,500]$ reflecting the $\sim8\%$ white-band inaccuracy of $T^{\rm (B)}$ there
-(\cref{app:transfer}). The estimator is thus unbiased even under a fully
-first-principles calibration. (At the per-realization level this residual is
-$\lesssim0.1\sigma$; it reaches a few-$\sigma$ in the worst bins only because the
-error bars are the $400$-realization error on the mean.)
+$[50,500]$ reflecting the $\sim8\%$ white-band inaccuracy of $T^{\rm (B)}$ there.
+The estimator is thus unbiased even under a fully first-principles calibration.
 \Cref{fig:crossM0predC,fig:crossM4predC} repeat the comparison with the
-Monte-Carlo--free closed-form transfer $T^{\rm (C)}$ (\cref{eq:TC}); the
-bandpowers are indistinguishable from the $T^{\rm (B)}$ result, confirming that
-the simple $g_{\rm edge}\times N_{\rm weight}$ factorization suffices to calibrate
-the estimator without any signal-sim input.
-
-Finally, \cref{fig:crossM0predD,fig:crossM4predD} show method (D)
-(\cref{app:transfer}), in which \emph{no transfer function is applied to the
-weighted scheme at all}: the measured pseudo-spectrum is decoupled with the
-mode-coupling matrix of the kernel-smoothed effective window
-$\Wtwo{\rm m}\,(\kappa\star\Wone^2)$ (\cref{eq:TD,eq:wDsmooth}), which absorbs
-both the $\Wone$ modulation and the kernel--mask edge loss directly into the
-NaMaster inversion (\textbf{none}/\textbf{W2}, for which (D) reduces to the
-standard decoupling, are corrected by $T^{\rm (C)}$ as before). The
-matrix-decoupled \textbf{W1W2} bandpowers track the truth without any
-calibration: to $2\%$ in $[1000,1500]$ and $5\%$ in $[500,1000]$ in the mean
-over the $400$ realizations ($\lesssim0.1\sigma$ per realization), degrading
-in the wide band $[50,500]$ where the white-band kernel approximation fails
-for all the analytic methods. \Cref{fig:transferD} dissects the construction
-on the signal-only channel --- including why the kernel smoothing of the
-window in \cref{eq:wDsmooth} is essential: the raw window
-$\Wtwo{\rm m}\Wone^2$ over-corrects.
+Monte-Carlo--free closed-form transfer $T^{\rm (C)}$; the bandpowers are
+indistinguishable from the $T^{\rm (B)}$ result.
+Finally, \cref{fig:crossM0predD,fig:crossM4predD} show method (D), in which no
+transfer function is applied to the weighted scheme at all: the matrix-decoupled
+\textbf{W1W2} bandpowers (\textbf{none}/\textbf{W2} corrected by
+$T^{\rm (C)}=g_{\rm edge}$ as before) track the truth to $2\%$ in $[1000,1500]$
+and $5\%$ in $[500,1000]$ in the mean over the $400$ realizations, degrading in
+the wide band $[50,500]$ as discussed in \cref{sec:TD}. The per-realization
+significance of every residual is $\lesssim0.15\sigma$ (\cref{tab:transfer}).
 
 \begin{figure}[p]
 \centering
@@ -329,9 +722,7 @@ $\hat C_\ell^{\dt M_{4E}}$, corrected by the analytic $T^{\rm (B)}$.}
 \caption{As \cref{fig:crossM0predB} but corrected by the \emph{closed-form}
 analytic transfer $T^{\rm (C)}$ of \cref{eq:TC} (the Monte-Carlo--free
 $g_{\rm edge}\times N_{\rm weight}$ factorization, constant within each band). The
-bandpowers remain consistent with truth, matching the (B) result, which confirms
-that the closed-form transfer is an adequate first-principles calibration in its
-own right.}
+bandpowers remain consistent with truth, matching the (B) result.}
 \label{fig:crossM0predC}
 \end{figure}
 
@@ -346,14 +737,13 @@ $\hat C_\ell^{\dt M_{4E}}$, corrected by the closed-form $T^{\rm (C)}$.}
 \begin{figure}[p]
 \centering
 \includegraphics[width=\textwidth]{figures/cross_M0_predD_ns1024.pdf}
-\caption{As \cref{fig:crossM0predB} but with the \textbf{W1W2} channel
-calibrated by method (D), \cref{eq:TD}: the bandpowers are decoupled with the
-mode-coupling matrix of the kernel-smoothed effective window
+\caption{As \cref{fig:crossM0predB} but with the \textbf{W1W2} channel calibrated
+by method (D), \cref{eq:TD}: the bandpowers are decoupled with the mode-coupling
+matrix of the kernel-smoothed effective window
 $\Wtwo{\rm m}\,(\kappa\star\Wone^2)$ of \cref{eq:wDsmooth}, which absorbs the
-$\Wone$ modulation and the edge loss as a matrix --- \emph{no transfer
-function is applied}. The \textbf{none}/\textbf{W2} schemes (for which (D)
-reduces to the standard decoupling) are corrected by
-$T^{\rm (C)}=g_{\rm edge}$ as before.}
+$\Wone$ modulation and the edge loss as a matrix --- \emph{no transfer function
+is applied}. The \textbf{none}/\textbf{W2} schemes (for which (D) reduces to the
+standard decoupling) are corrected by $T^{\rm (C)}=g_{\rm edge}$ as before.}
 \label{fig:crossM0predD}
 \end{figure}
 
@@ -361,8 +751,8 @@ $T^{\rm (C)}=g_{\rm edge}$ as before.}
 \centering
 \includegraphics[width=\textwidth]{figures/cross_M4E_predD_ns1024.pdf}
 \caption{As \cref{fig:crossM0predD} for the spin-4 cross
-$\hat C_\ell^{\dt M_{4E}}$, with the \textbf{W1W2} channel matrix-decoupled
-per method (D).}
+$\hat C_\ell^{\dt M_{4E}}$, with the \textbf{W1W2} channel matrix-decoupled per
+method (D).}
 \label{fig:crossM4predD}
 \end{figure}
 
@@ -495,269 +885,15 @@ $T^{\rm (A)}$); parallel per mask, then combined.
 \item[\texttt{analyze.py}] the two unbiasedness $\chi^2$ tests, the
 $T^{\rm (A)}$-corrected cross-spectra, the SNR comparison, the correlation
 matrices, and the table data.
-\item[\texttt{predict\_transfer.py}] the analytic transfer (\cref{app:transfer}):
+\item[\texttt{predict\_transfer.py}] the analytic transfer (\cref{sec:transfer}):
 methods (B) Gaussian-MC and (C) closed form, the three-method comparison, and the
 fiducial $T^{\rm (B)}$-corrected cross-spectra.
 \item[\texttt{nmt\_covariance.py}] the NaMaster Gaussian covariance versus the
 sample scatter, for $M_0$ and $M_{4E}$.
 \item[\texttt{method\_d.py}] the method-(D) mode-coupling calibration
-(\cref{eq:TD}): the dummy-window ($\Wtwo{\rm m}\Wone^2$) coupling matrices, the
-exact linear re-decoupling of the stored bandpowers, its validation, and the
-(D) figures.
+(\cref{eq:TD}): the dummy-window ($\Wtwo{\rm m}\Wone^2$ and
+$\Wtwo{\rm m}(\kappa\star\Wone^2)$) coupling matrices, the exact linear
+re-decoupling of the stored bandpowers, its validation, and the (D) figures.
 \end{description}
-
-\appendix
-
-\section{Analytic transfer function}\label{app:transfer}
-
-The transfer function quantifies why the masked, weighted \emph{filter-then-square}
-estimator differs from the full-sky \emph{filter-then-square} ground truth for the
-same sky. For a Gaussian shear field it is calculable from the mask, the weights
-$\Wone,\Wtwo$, the filter, and the shear power spectrum $C^{\gamma\gamma}_\ell$.
-
-\paragraph{Filtered-shear kernel.}
-Let $\xi=F[\Wone\bm\gamma]$ be the bandpass-filtered (weighted) shear, with
-real-space bandpass kernel $K(\theta)=\mathrm{bl2beam}(f_\ell)$. Its full-sky,
-homogeneous two-point function is
-\begin{equation}
-\rho(\theta)=\E[\xi(\nv)\xi^*(\nv')]
-=\sum_\ell\frac{2\ell+1}{4\pi}f_\ell^2\,C^{\gamma\gamma}_\ell\,P_\ell(\cos\theta),
-\qquad \E[M_0]=\rho(0).
-\end{equation}
-
-\paragraph{Squeezed response.}
-The shear--shear--density signal is the response of the small-scale shear power to
-the large-scale lens density: $C^{\gamma\gamma}_\ell\to
-C^{\gamma\gamma}_\ell[1+b_\phi\,\dt(\nv)]$ across the band. To linear order the
-$\dt$-correlated part of $M_0$ is
-\begin{equation}
-\delta M_0(\nv)=b_\phi\!\int\!\!\int K(\nv,a)K^*(\nv,b)\,\Wone(a)\Wone(b)\,
-C^{\gamma\gamma}(a\!\cdot\!b)\,\dt(a)\,\diff a\,\diff b\;+\;(a\!\leftrightarrow\!b),
-\end{equation}
-where $\Wone$ carries the binary mask. Doing the inner integral,
-$\int K^*(\nv,b)C^{\gamma\gamma}(a\!\cdot\!b)\diff b$ has harmonic coefficients
-$f_\ell C^{\gamma\gamma}_\ell$, so
-\begin{equation}
-\boxed{\;\delta M_0(\nv)=2b_\phi\,[\kappa\star(\Wone^2\dt)](\nv),\qquad
-b^\kappa_\ell=\mathrm{beam2bl}\!\big[\mathrm{bl2beam}(f_\ell)\cdot
-\mathrm{bl2beam}(f_\ell C^{\gamma\gamma}_\ell)\big].\;}
-\label{eq:kappa}
-\end{equation}
-For a white band $C^{\gamma\gamma}_\ell=P_0$ this reduces to
-$b^\kappa_\ell=P_0\,\mathrm{beam2bl}[\,|K(\theta)|^2]$, i.e.\ the squared-kernel
-$|K|^2$ of the optimal-weights note (its noise template, with $n^2\!\to\!P_0$).
-The shear power enters only through the \emph{shape} of $\kappa$ (its width within
-the band); the response amplitude $b_\phi$ cancels below.
-
-\paragraph{Transfer.}
-Full sky with $\Wone=1$ gives the truth response $\delta M_0^{\rm t}=2b_\phi
-\,\kappa\star\dt$, so $\langle\delta M_0^{\rm t}\dt\rangle_\ell=2b_\phi
-b^\kappa_\ell C^{\dt\dt}_\ell$. NaMaster already removes the cross mode-coupling
-of the $(\Wtwo\,\text{mask},\,\text{mask})$ weights, so the residual transfer is
-the field-level window relating the constructed response $\kappa\star(\Wone^2\dt)$
-to the truth $\kappa\star\dt$:
-\begin{equation}
-T_\ell=\frac{\big\langle\,\mathrm{decouple}_{\Wtwo{\rm m}}\,
-\mathrm{pseudo}C_\ell[(\Wtwo\,{\rm m})\,\kappa\star(\Wone^2\dt),\ {\rm m}\,\dt]\big\rangle}
-{\big\langle\,\mathrm{decouple}_{1}\,
-\mathrm{pseudo}C_\ell[\kappa\star\dt,\ \dt]\big\rangle},
-\label{eq:Tdef}
-\end{equation}
-independent of $b_\phi$ and of the normalization of $\kappa$.
-
-\paragraph{Density assumption and weight contraction.}
-We treat $\delta_{\rm src}$ as an externally \emph{fixed survey window}: it sets
-the depth and hence the noise and the weights $\Wone,\Wtwo$, which are therefore
-deterministic maps (like the mask). The lens density $\dt$ --- at a different
-redshift --- is the random probe, taken uncorrelated with the window,
-$\delta_{\rm src}\perp\dt$. The prediction thus uses only the spectra
-$C^{\gamma\gamma}$ (via $\kappa$) and $C^{\dt\dt}$ (the probe), with $\dt$ drawn
-from its spectrum; it never uses the lens map. Because $\Wone^2$ is fixed and
-independent of $\dt$, the response $\kappa\star(\Wone^2\dt)$ is linear in $\dt$
-and the transfer is a functional of $C^{\dt\dt}_\ell$ and the survey maps alone.
-
-\paragraph{Four evaluations.}
-\begin{itemize}
-\item[(A)] \emph{Measured}: from the $400$ noise-free signal realizations of the
-main run (these use the \emph{real}, weakly correlated $\delta_{\rm src}$ and
-$\dt$).
-\item[(B)] \emph{Gaussian Monte-Carlo}: a fixed $\delta_{\rm src}$ window
-$\to$ fixed $\Wone,\Wtwo$; draw Gaussian $\dt$ from $C^{\dt\dt}_\ell$; propagate
-$\kappa\star(\Wone^2\dt)$ through the identical NaMaster decoupling and average.
-\item[(C)] \emph{Closed form (no Monte-Carlo)}:
-\begin{equation}
-\boxed{\;T_\ell^{\rm (C)}=g_{\rm edge}\times N_{\rm weight},\quad
-g_{\rm edge}=\frac{\langle\kappa\star{\rm m}\rangle_{\rm m}}{\langle{\rm m}\rangle_{\rm m}},\quad
-N_{\rm weight}=\frac{\langle\Wtwo\,{\rm m}\,\Wone^2\rangle}{\langle\Wtwo\,{\rm m}\rangle}\;}
-\label{eq:TC}
-\end{equation}
-\item[(D)] \emph{Mode-coupling matrix}: decouple the measured pseudo-spectrum
-with the NaMaster coupling matrix of an effective window carrying the weight
-modulation (\cref{eq:TD} below); with the kernel-smoothed window
-$w_{\rm D}=\Wtwo{\rm m}\,(\kappa\star\Wone^2)$ the $\Wone$ Jensen factor
-\emph{and} the edge loss are absorbed as a full matrix, leaving no transfer
-function at all.
-\end{itemize}
-$g_{\rm edge}\simeq0.93$--$0.94$ is the finite-kernel mask-edge loss (the fraction
-of the filter footprint inside the mask, set by the filter and
-$C^{\gamma\gamma}$); it sets the overall $\simeq0.94$ level for the unweighted
-schemes. $N_{\rm weight}$ is the net inverse-variance Jensen factor: $\Wone^2\propto
-(1{+}\delta_{\rm src})^2$ upweights low-noise regions, and although the optimal
-$\Wtwo$ partly compensates, a residual enhancement survives,
-$N_{\rm weight}\approx1.04$--$1.10$ for W1W2 (rising with band) and $=1$ for
-\textbf{none}/\textbf{W2}. This is precisely the measured W1W2 lift, and it is
-reproduced by the prediction from the \emph{fixed, uncorrelated} window alone ---
-demonstrating that the lift is a deterministic property of the inverse-variance
-weighting and the survey depth, not a source--lens density correlation.
-
-\paragraph{Method (D): absorbing $\Wone$ into the mode-coupling matrix.}
-Rather than dividing out a transfer function, the $\Wone$ modulation can be
-handed to NaMaster itself. If the weight were smooth on the kernel scale the
-response would commute, $\kappa\star(\Wone^2\dt)\simeq\Wone^2\,(\kappa\star\dt)$,
-and the weighted squared field entering the pseudo-spectrum would be
-\begin{equation}
-(\Wtwo{\rm m})\,\delta M_0\ \simeq\ (\Wtwo\,{\rm m}\,\Wone^2)\times
-2b_\phi\,(\kappa\star\dt)\,,
-\end{equation}
-i.e.\ the \emph{full-sky truth response} observed through the effective
-multiplicative window $\Wtwo{\rm m}\Wone^2$. Decoupling the measured
-pseudo-spectrum with the mode-coupling matrix computed for the window pair
-$({\rm m},w_{\rm D})$ --- in NaMaster, a map-less ``dummy'' field carrying
-$w_{\rm D}$ ---
-\begin{equation}
-\boxed{\;\hat C^{\rm (D)}_b=\sum_{b'}\bigl[M^{({\rm m},\,w_{\rm D})}\bigr]^{-1}_{bb'}
-\,\mathrm{pseudo}C_{b'}\bigl[({\rm m})\,\dt,\ (\Wtwo{\rm m})\,M_0\bigr]\;}
-\label{eq:TD}
-\end{equation}
-then estimates the truth response directly: the inverse-variance Jensen factor
-($N_{\rm weight}$ of method (C)) is absorbed into the coupling matrix, as a full
-$\ell$-dependent matrix rather than a scalar. The arbitrary $\Wone$
-normalization cancels ($M_0\propto\Wone^2$ and $w_{\rm D}\propto\Wone^2$), and
-for \textbf{none}/\textbf{W2} ($\Wone=1$) the construction reduces to the
-standard decoupling.
-
-The choice of $w_{\rm D}$ requires care, because the survey weight is
-\emph{not} smooth on the kernel scale ($\delta_{\rm src}$ has structure at all
-$\ell$). Writing out the $\dt$-contraction of the pseudo-spectrum,
-\begin{equation}
-\big\langle({\rm m}\,\dt)(x)\ (\Wtwo{\rm m})(\nv)\,[\kappa\star(\Wone^2\dt)](\nv)\big\rangle
-=\int\!{\rm m}(x)\,(\Wtwo{\rm m})(\nv)\,\kappa(\nv-a)\,\Wone^2(a)\,
-\xi_{\dt}(x-a)\,\diff a ,
-\end{equation}
-the weight is probed at the \emph{inner} point $a$ of the kernel convolution:
-since the probe $\xi_\dt$ is long-ranged (the cross lives at low $\ell$) while
-$\kappa$ is narrow, the multiplicative-window model holds with the
-\emph{kernel-smoothed} weight,
-\begin{equation}
-w_{\rm D}^{\rm smooth}=\Wtwo\,{\rm m}\,(\kappa\star\Wone^2)\,,
-\label{eq:wDsmooth}
-\end{equation}
-($\kappa$ normalized to unit integral) rather than with the raw
-$w_{\rm D}^{\rm raw}=\Wtwo{\rm m}\Wone^2$ of the naive commutation: the raw
-window over-counts the small-scale weight structure that the kernel filters
-out of the band. The two differ in their residual calibration. With
-$w^{\rm raw}_{\rm D}$ the idealized residual is the kernel-edge factor
-$g_{\rm edge}$ of \cref{eq:TC} (the smoothing of $\Wone^2$, which carries the
-mask, is not represented). With $w^{\rm smooth}_{\rm D}$ the window itself
-contains the kernel's mask-edge dip --- $\kappa\star\Wone^2$ falls off where the
-kernel support leaves the footprint, the very effect $g_{\rm edge}$
-parameterizes --- so the expected residual calibration is \emph{unity}: no
-transfer function at all.
-
-Three practical points. (i) Both decouplings act linearly on the same measured
-pseudo-spectrum, so the (D) bandpowers follow from the stored
-standard-decoupled ones exactly,
-$\hat C^{\rm (D)}=M_{\rm D}^{-1}M_{\rm std}\,\hat C^{\rm std}$ (binned
-matrices), with no re-measurement; we verified this re-decoupling against a
-direct (D) decoupling of one realization to relative precision
-$\lesssim4\times10^{-15}$.
-(ii) The coupling matrices use the fixed survey window of realization~1 ---
-the same fixed-window treatment as (B)/(C) --- while the measured $M_0$
-carries the per-realization $\Wone$. (The \emph{ensemble-mean} noise map must
-not be used here: averaging over source-density realizations washes out the
-modulation, leaving a nearly flat window and a no-op correction.) (iii) For
-the spin-4 channel the decoupling in principle mixes ($E$,$B$); we apply the
-$E\!\to\!E$ block of the re-decoupling matrix to the stored $E$ bandpowers,
-having checked that the $E\!\leftarrow\!B$ leakage block vanishes identically
-for these windows.
-
-\Cref{fig:transferD} tests both windows on the signal-only channel ($M_0$).
-The raw window \emph{over}-corrects: the residual transfer lands below
-$g_{\rm edge}$ (medians $0.92$ in $[1000,1500]$ and $0.89$ in $[500,1000]$,
-against $g_{\rm edge}\simeq0.94$), because the coupling matrix charges the
-estimator for small-scale weight power that the kernel has already filtered
-out of the band. The kernel-smoothed window behaves as derived: its residual
-is consistent with \emph{unity} to $2\%$ in $[1000,1500]$
-($\langle T\rangle=0.98$) and to $5\%$ in $[500,1000]$
-($\langle T\rangle=0.95$) --- the $\Wone$ lift \emph{and} the edge loss are
-both absorbed by the matrix, with no transfer function applied at all. (The
-two variants differ by a nearly flat factor $\simeq1/g_{\rm edge}$: the kernel
-smoothing of the window is dominated by its mask-edge dip.) The remaining
-few-percent deficit has the expected sign: the response carries the weight at
-\emph{two} filtered points, $\Wone(a)\Wone(b)$, so weight fluctuations above
-the field bandpass cannot modulate the band at all, whereas
-$\kappa\star\Wone^2$ retains their positive contribution to the local mean
-square --- the matrix still over-corrects slightly. In the wide band
-$[50,500]$ the deficit grows to $\sim15\%$, the regime in which the white-band
-$\kappa$ approximation already degrades methods (B) ($8\%$) and (C). The
-spin-4 channel follows the same pattern within its much larger transfer
-uncertainty (median smoothed-window residuals $0.87$--$0.90$).
-
-In absolute terms, the truth-residual $\chi^2$ (recipe of \cref{tab:chi2},
-$400$-realization error on the mean) of the transfer-free smoothed-window
-calibration of \textbf{W1W2} $M_0$ is $96/16$, $49/16$, $17.5/16$ in the three
-bands, against $57/16$, $34/16$, $14/16$ for the (B)-calibrated and $46/16$,
-$42/16$, $18/16$ for the (C)-calibrated bandpowers (all $\lesssim0.15\sigma$
-per realization): comparable in the narrow bands, worse in the wide one.
-Method (D) is thus not more accurate than (B) on this footprint, but it is the
-only calibration that is simultaneously Monte-Carlo--free, matrix-level (it
-corrects bandpower-to-bandpower couplings of the weight, not just the mean),
-and free of any explicit transfer function.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/transfer_D_ns1024.pdf}
-\caption{Residual transfer of the \textbf{W1W2} scheme under the standard
-decoupling (blue points: measured; blue dashed: the closed form
-$g_{\rm edge}N_{\rm weight}$ of \cref{eq:TC}) and under the method-(D) matrix
-decoupling, with the raw window $\Wtwo{\rm m}\Wone^2$ (green) and the
-kernel-smoothed window $\Wtwo{\rm m}(\kappa\star\Wone^2)$ of
-\cref{eq:wDsmooth} (purple), for the $M_0$ channel per filter band, on the
-signal-bearing bandpowers. The dotted line is $g_{\rm edge}$, the solid grey
-line unity. The raw window over-corrects (lands below $g_{\rm edge}$); the
-kernel-smoothed window absorbs both the $\Wone$ lift and the edge loss,
-leaving a residual close to unity in the narrow bands.}
-\label{fig:transferD}
-\end{figure}
-
-\paragraph{Spin-4.}
-A scalar power modulation does not source $M_{4E}=\mathrm{Re}\,\xi^2$ at linear
-order ($\E[\xi^2]=0$); its signal is the anisotropic (tidal) response, with a
-different kernel and amplitude. The \emph{geometric} transfer
-\cref{eq:TC} --- mask$\,\otimes\,$filter non-commutation and weight normalization
---- is, however, common to both spin channels, as confirmed by the near-equal
-measured $M_0$ and $M_{4E}$ transfers (\cref{tab:chi2}). We therefore compare the
-scalar prediction with both measured channels in \cref{fig:transfer_pred}.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/transfer_pred_ns1024.pdf}
-\caption{Transfer function by the three methods over the full analysed range
-$\ell\le768$, per scheme (colour) and band. Points: measured (A) for $M_0$
-(circles, signal-bearing bandpowers) and $M_{4E}$ (crosses). Solid lines:
-Gaussian Monte-Carlo (B); dashed: closed form (C), \cref{eq:TC}. The predictions
-use only the fixed $\delta_{\rm src}$ survey window (hence $\Wone,\Wtwo$), the
-spectra $C^{\gamma\gamma}$ (via $\kappa$) and $C^{\dt\dt}$, the mask and the
-filter --- and never the lens map. (B) and (C) agree, and both match the
-measured transfer to $\sim$1--3\% in the narrow bands $[500,1000]$ and
-$[1000,1500]$ --- including the \textbf{W1W2} lift to $\simeq1.0$--$1.05$ --- and
-to $\sim$8\% in the wide low band $[50,500]$, where the white-band approximation
-for $\kappa$ is least accurate (cf.\ the optimal-weights note). The lift is thus a
-deterministic inverse-variance effect, not a source--lens correlation; both spin
-channels follow the common scalar prediction. (The lowest bandpower of the measured $T$ is noisy:
-the mode-coupling matrix is ill-conditioned for the largest scales on an
-$\sim\!11\%$ footprint.)}
-\label{fig:transfer_pred}
-\end{figure}
 
 \end{document}
