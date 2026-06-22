@@ -17,7 +17,7 @@ def main():
         p = os.path.join(L.DATA_OUT, f"masked_ns{nside}_m{i}.npz")
         parts.append(np.load(p, allow_pickle=True))
     nreal = int(parts[0]["nreal"])
-    keys = ["sig_m0", "tot_m0", "sig_m4e", "tot_m4e"]
+    keys = ["sig_m0", "tot_m0", "sig_m4e", "tot_m4e", "sig_m4b", "tot_m4b"]
     out = {}
     for key in keys:
         arrs = [p[key] for p in parts]          # each [nsch, nband, nreal, nbin]

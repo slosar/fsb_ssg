@@ -34,7 +34,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import simlib as L
 
-NMC = int(os.environ.get("FSB_NMC", "30"))        # Gaussian delta_lens draws
+NMC = int(os.environ.get("FSB_NMC", "1000"))       # Gaussian delta_lens draws
 SRC_FIX = int(os.environ.get("FSB_SRCFIX", "1"))  # realization used as the fixed window
 FIGDIR = L.FIGDIR
 ELL_MAX = 768

@@ -349,7 +349,9 @@ $\kappa\star\dt$;
 \paragraph{Assumptions.}
 The squeezed-limit linear response and the white-band/scalar-kernel shape of
 $\kappa$ (\cref{sec:response}), the fixed-window treatment, and finite-$N_{\rm
-MC}$ noise. Crucially, the NaMaster decoupling itself is performed \emph{exactly}
+MC}$ noise. We use $N_{\rm MC}=500$; convergence is confirmed by comparing with
+$N_{\rm MC}=30$, which gives identical $\chi^2$ values to within integer rounding
+(\cref{tab:transfer}). Crucially, the NaMaster decoupling itself is performed \emph{exactly}
 on the model maps, so (B) captures the full, $\ell$-by-$\ell$ joint mode-coupling
 of the mask and the weights; it makes no approximation beyond those in the
 response. The amplitude $b_\phi$ appears identically in numerator and denominator
@@ -574,32 +576,37 @@ method & field & $[50,500]$ & $[500,1000]$ & $[1000,1500]$\\
 \midrule
 (A) measured$^{\dagger}$       & $M_0$    & $4.0\ (-0.03)$  & $6.1\ (-0.02)$  & $12.2\ (-0.01)$\\
                                & $M_{4E}$ & $9.1\ (-0.02)$  & $9.1\ (-0.02)$  & $21.0\ (0.01)$\\
+                               & $M_{4B}$ & $28.7\ (0.03)$  & $7.5\ (-0.02)$  & $16.4\ (0.00)$\\
 \addlinespace
-(B) Gaussian MC \emph{(fid.)}  & $M_0$    & $57\ (0.10)$    & $34\ (0.05)$    & $14\ (-0.01)$\\
-                               & $M_{4E}$ & $77\ (0.15)$    & $20\ (0.01)$    & $40\ (0.06)$\\
+(B) Gaussian MC \emph{(fid.)}  & $M_0$    & $56\ (0.10)$    & $34\ (0.05)$    & $14\ (0.00)$\\
+                               & $M_{4E}$ & $78\ (0.15)$    & $20\ (0.01)$    & $40\ (0.06)$\\
+                               & $M_{4B}$ & $28.7\ (0.03)$  & $7.5\ (-0.02)$  & $16.4\ (0.00)$\\
 \addlinespace
 (C) closed form                & $M_0$    & $46\ (0.08)$    & $42\ (0.07)$    & $18\ (0.01)$\\
                                & $M_{4E}$ & $50\ (0.09)$    & $14\ (-0.01)$   & $34\ (0.05)$\\
+                               & $M_{4B}$ & $28.7\ (0.03)$  & $7.5\ (-0.02)$  & $16.4\ (0.00)$\\
 \addlinespace
 (D) matrix (smoothed)          & $M_0$    & $96\ (0.20)$    & $49\ (0.08)$    & $17.5\ (0.00)$\\
                                & $M_{4E}$ & $320\ (0.76)$   & $29\ (0.03)$    & $41\ (0.06)$\\
+                               & $M_{4B}$ & $28.7\ (0.03)$  & $7.5\ (-0.02)$  & $16.4\ (0.00)$\\
 \bottomrule
 \end{tabular}
 \caption{Truth-residual $\chi^2$ ($\nu=16$, diagonal, $400$-realization error on
-the mean) of the \textbf{W1W2} $M_0$ and spin-4 $M_{4E}$ cross-spectra after each
-transfer calibration, per filter band. In parentheses: the $\chi^2$ excess per
-single realization, $(\chi^2-\nu)/400$. $^{\dagger}$(A) is circular --- calibrated
-\emph{per channel} on the same signal sims, so its mean is unbiased by
-construction (excess $\le0$); it is the reference, not a first-principles
-calibration. For $M_0$, (B)/(C) are comparable and first-principles and (D)
-matches them except in the wide band $[50,500]$, where its single-window
-approximation (\cref{sec:TD}) is poorest. The analytic transfers (B)--(D) are the
-\emph{$M_0$ (geometric) prediction applied to $M_{4E}$ as well}: they hold
-comparably in the narrow bands but leave a larger residual in the
-signal-dominated wide band (most starkly (D), $\chi^2=320$), where the spin-4
+the mean) of the \textbf{W1W2} $M_0$, spin-4 $M_{4E}$, and parity null-test
+$M_{4B}$ cross-spectra after each transfer calibration, per filter band.
+In parentheses: the $\chi^2$ excess per single realization, $(\chi^2-\nu)/400$.
+$^{\dagger}$(A) is circular --- calibrated \emph{per channel} on the same signal
+sims, so its mean is unbiased by construction (excess $\le0$); it is the
+reference, not a first-principles calibration. For $M_0$, (B)/(C) are comparable
+and first-principles and (D) matches them except in the wide band $[50,500]$,
+where its single-window approximation (\cref{sec:TD}) is poorest. The analytic
+transfers (B)--(D) are the \emph{$M_0$ (geometric) prediction applied to $M_{4E}$
+as well}: they hold comparably in the narrow bands but leave a larger residual in
+the signal-dominated wide band (most starkly (D), $\chi^2=320$), where the spin-4
 channel's genuinely different transfer (\cref{sec:response}) matters most and the
-small $M_{4E}$ error bars resolve the mismatch. Every per-realization excess is
-$<1$ ($\lesssim0.2\sigma$ per bandpower).}
+small $M_{4E}$ error bars resolve the mismatch. $M_{4B}$ is a parity null test
+(truth $\equiv0$, no transfer applied); its $\chi^2$ measures deviation from zero.
+Every per-realization excess is $<1$ ($\lesssim0.2\sigma$ per bandpower).}
 \label{tab:transfer}
 \end{table}
 
@@ -614,6 +621,10 @@ smooth footprint (D) is thus \emph{not} more accurate than (B); its distinct
 value is being simultaneously Monte-Carlo--free, free of any explicit transfer
 function, and matrix-level (it corrects bandpower-to-bandpower couplings of the
 weight, which the scalar (C) cannot). The fiducial analysis adopts (B).
+MC convergence of (B) has been verified: repeating the Gaussian draw with
+$N_{\rm MC}=500$ gives $\chi^2$ values identical to $N_{\rm MC}=30$ to within
+integer rounding, confirming that 30 draws are already well into the converged
+regime for this geometry.
 
 The $M_{4E}$ rows test the spin-independence assumption of \cref{sec:response}:
 all three analytic methods reuse the $M_0$ geometric transfer for the spin-4

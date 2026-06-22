@@ -2,9 +2,9 @@
 
 Three weighting schemes: 'none' (binary mask), 'W2' (post-square IVW),
 'W1W2' (W1=1/n^2 pre-filter + W2 post-square).  For each sample we store the
-cross-spectra of delta_lens with M0 (bl2beam-debiased) and with M4E, for both
+cross-spectra of delta_lens with M0 (bl2beam-debiased), M4E, and M4B, for both
 the signal-only channel (-> transfer function) and the signal+noise channel
-(-> data vector + sample covariance).
+(-> data vector + sample covariance).  M4B is a parity null test (expected zero).
 
 W2 (the NaMaster weight) is fixed per (mask, scheme, band), built from the
 ensemble-mean noise variance, so coupling matrices are computed once and reused.
@@ -12,7 +12,8 @@ W1 and the bl2beam bias template use the actual per-realization noise.
 
 Output: data/masked_ns{NSIDE}.npz
   schemes, bands, ells,
-  sig_m0[scheme,band,400,nbin], tot_m0[...], sig_m4e[...], tot_m4e[...]
+  sig_m0[scheme,band,400,nbin], tot_m0[...],
+  sig_m4e[...], tot_m4e[...], sig_m4b[...], tot_m4b[...]
 
 Run:  FSB_NSIDE=512 python run_masked.py
       FSB_NREAL=5 FSB_NMASK=1 FSB_BANDS=1 python run_masked.py   # quick test
@@ -82,6 +83,7 @@ def main():
     shape = (len(SCHEMES), len(bands), nsamp, nb)
     sig_m0 = np.zeros(shape); tot_m0 = np.zeros(shape)
     sig_m4e = np.zeros(shape); tot_m4e = np.zeros(shape)
+    sig_m4b = np.zeros(shape); tot_m4b = np.zeros(shape)
     sidx = {s: i for i, s in enumerate(SCHEMES)}
 
     for k in range(NREAL):
@@ -110,10 +112,12 @@ def main():
                         si = sidx[scheme]
                         sig_m0[si, bi, samp] = L.cross_M0(f0d, m0s, W2, ws00[key])
                         tot_m0[si, bi, samp] = L.cross_M0(f0d, m0t - B, W2, ws00[key])
-                        e, _ = L.cross_M4(f0d, m4es, m4bs, W2, ws04[key])
+                        e, b = L.cross_M4(f0d, m4es, m4bs, W2, ws04[key])
                         sig_m4e[si, bi, samp] = e
-                        e, _ = L.cross_M4(f0d, m4et, m4bt, W2, ws04[key])
+                        sig_m4b[si, bi, samp] = b
+                        e, b = L.cross_M4(f0d, m4et, m4bt, W2, ws04[key])
                         tot_m4e[si, bi, samp] = e
+                        tot_m4b[si, bi, samp] = b
         if r % 5 == 0 or r == 1:
             print(f"  r{r:03d}/{NREAL}  ({time.time()-t0:.0f}s)", flush=True)
 
@@ -122,7 +126,9 @@ def main():
     out = os.path.join(L.DATA_OUT, f"masked_ns{nside}{suffix}.npz")
     np.savez(out, schemes=np.array(SCHEMES), bands=np.array(bands), ells=ells,
              nside=nside, lmax=lmax, nreal=NREAL, mask_ids=np.array(MASK_IDS),
-             sig_m0=sig_m0, tot_m0=tot_m0, sig_m4e=sig_m4e, tot_m4e=tot_m4e)
+             sig_m0=sig_m0, tot_m0=tot_m0,
+             sig_m4e=sig_m4e, tot_m4e=tot_m4e,
+             sig_m4b=sig_m4b, tot_m4b=tot_m4b)
     print(f"saved {out}  ({time.time()-t0:.0f}s)", flush=True)
 
 

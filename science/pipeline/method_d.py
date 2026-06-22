@@ -187,16 +187,21 @@ def compute():
 
     # transform the saved per-mask W1W2 bandpowers, interleave samp = k*4 + mi
     out = {f"{k}_{v}": np.zeros((nbands, NREAL * NMASK, nb))
-           for k in ["sig_m0", "tot_m0", "sig_m4e", "tot_m4e"] for v in VARIANTS}
+           for k in ["sig_m0", "tot_m0", "sig_m4e", "tot_m4e", "sig_m4b", "tot_m4b"]
+           for v in VARIANTS}
     for mi in range(NMASK):
         part = np.load(os.path.join(L.DATA_OUT, f"masked_ns{nside}_m{mi}.npz"),
                        allow_pickle=True)
         for bi in range(nbands):
-            for key in ["sig_m0", "tot_m0", "sig_m4e", "tot_m4e"]:
+            for key in ["sig_m0", "tot_m0", "sig_m4e", "tot_m4e", "sig_m4b", "tot_m4b"]:
                 x = part[key][SI, bi]                       # [nreal, nb]
                 for v in VARIANTS:
-                    Am = (A00[v][mi, bi] if key.endswith("m0")
-                          else A04[v][mi, bi, :nb, :nb])
+                    if key.endswith("m0"):
+                        Am = A00[v][mi, bi]
+                    elif key.endswith("m4e"):
+                        Am = A04[v][mi, bi, :nb, :nb]       # EE block
+                    else:
+                        Am = A04[v][mi, bi, nb:, nb:]       # BB block (M4B)
                     out[f"{key}_{v}"][bi, mi::NMASK] = x @ Am.T
 
     # residual scalar calibration: g_edge = T_C of the unweighted scheme (N_w=1)
@@ -223,7 +228,8 @@ def report_and_plot():
     bands = [tuple(int(x) for x in b) for b in md["bands"]]
     g_edge, T_C = md["g_edge"], pr["T_C"]
     sel = ells <= ELL_MAX
-    truth = {"M0": gt["cl_m0"].mean(1), "M4E": gt["cl_m4e"].mean(1)}
+    truth = {"M0": gt["cl_m0"].mean(1), "M4E": gt["cl_m4e"].mean(1),
+             "M4B": np.zeros((len(bands), len(ells)))}
     # idealized residual scalar per variant: D1 -> g_edge, D2 -> 1 (edge absorbed)
     resid_cal = {"D1": g_edge, "D2": np.ones_like(g_edge)}
 
@@ -234,22 +240,30 @@ def report_and_plot():
             lines.append(f"  spot-check {k[6:]}: {float(md[k]):.2e}")
     lines.append(f"  max |A04_EB| (spin-4 E<-B leakage, B dropped): {float(md['max_A04_EB']):.2e}")
     for v in VARIANTS:
-        for fname, key in [("M0", "m0"), ("M4E", "m4e")]:
+        for fname, key in [("M0", "m0"), ("M4E", "m4e"), ("M4B", "m4b")]:
             for bi, band in enumerate(bands):
                 tr = truth[fname][bi]
-                corr = md[f"tot_{key}_{v}"][bi] / resid_cal[v][bi]
+                null_test = np.abs(tr).max() < 1e-50
+                if null_test:
+                    corr = md[f"tot_{key}_{v}"][bi]      # no transfer for null test
+                else:
+                    corr = md[f"tot_{key}_{v}"][bi] / resid_cal[v][bi]
                 cmean = corr.mean(0)
                 C = np.cov(corr, rowvar=False)
                 err_cm = np.sqrt(np.clip(np.diag(C), 0, None) / corr.shape[0])
                 m = sel & (err_cm > 0)
                 chi2 = float(np.sum(((cmean - tr)[m] / err_cm[m]) ** 2))
-                trs = tr[sel]
-                snr = float(np.sqrt(trs @ np.linalg.solve(C[np.ix_(sel, sel)], trs)))
-                TD = md[f"sig_{key}_{v}"][bi].mean(0) / tr
-                good = np.abs(tr) > 0.15 * np.abs(tr).max()
-                lines.append(f"{v} {fname:4s} band{bi}{band}: <T_{v}>="
-                             f"{np.nanmedian(TD[good]):.3f} (g_edge={g_edge[bi]:.3f})"
-                             f"  chi2_truth={chi2:.1f}/{int(m.sum())}  SNR={snr:.1f}")
+                if null_test:
+                    lines.append(f"{v} {fname:4s} band{bi}{band}:"
+                                 f"  chi2_null={chi2:.1f}/{int(m.sum())}")
+                else:
+                    trs = tr[sel]
+                    snr = float(np.sqrt(trs @ np.linalg.solve(C[np.ix_(sel, sel)], trs)))
+                    TD = md[f"sig_{key}_{v}"][bi].mean(0) / tr
+                    good = np.abs(tr) > 0.15 * np.abs(tr).max()
+                    lines.append(f"{v} {fname:4s} band{bi}{band}: <T_{v}>="
+                                 f"{np.nanmedian(TD[good]):.3f} (g_edge={g_edge[bi]:.3f})"
+                                 f"  chi2_truth={chi2:.1f}/{int(m.sum())}  SNR={snr:.1f}")
     rep = "\n".join(lines)
     print(rep)
     with open(os.path.join(L.DATA_OUT, f"method_d_ns{nside}.txt"), "w") as f:

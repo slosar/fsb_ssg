@@ -57,9 +57,11 @@ def main():
     sel = (ells >= ELL_MIN) & (ells <= ELL_MAX)
     truth_m0 = gt["cl_m0"].mean(axis=1)     # [band, bin]
     truth_m4e = gt["cl_m4e"].mean(axis=1)
+    truth_m4b = np.zeros_like(truth_m4e)    # parity null test: expected zero
 
     fields = {"M0": ("sig_m0", "tot_m0", truth_m0),
-              "M4E": ("sig_m4e", "tot_m4e", truth_m4e)}
+              "M4E": ("sig_m4e", "tot_m4e", truth_m4e),
+              "M4B": ("sig_m4b", "tot_m4b", truth_m4b)}
 
     report = []
     results = {}
@@ -73,8 +75,11 @@ def main():
                 sig_mean = sig.mean(0)
                 tot_mean = tot.mean(0)
                 nsamp = sig.shape[0]
-                # transfer (guard tiny truth)
-                T = np.where(np.abs(tr) > 1e-30 * np.abs(tr).max(), sig_mean / tr, np.nan)
+                # transfer (guard tiny truth; null-test fields use identity)
+                if np.abs(tr).max() < 1e-50:
+                    T = np.ones_like(sig_mean)   # M4B null test: no transfer
+                else:
+                    T = np.where(np.abs(tr) > 1e-30 * np.abs(tr).max(), sig_mean / tr, np.nan)
                 # noise-debiasing test: d = tot - sig (signal cancels per sample)
                 d = tot - sig
                 dmean = d.mean(0)
